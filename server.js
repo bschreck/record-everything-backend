@@ -15,7 +15,7 @@ var router = express.Router()
 app.use('/api', router);
 
 var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/foodTrackerDB");
+mongoose.connect("mongodb://localhost:27017/recordEverythingDB");
 
 var models = {};
 var Meal = require('./app/models/meal');
