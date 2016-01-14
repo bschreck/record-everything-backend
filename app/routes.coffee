@@ -1,4 +1,6 @@
-routeFunction = (router,auth,models,dbFunctions,utils) ->
+authFunctions = require './auth'
+routeFunction = (router,models,dbFunctions,utils) ->
+
     router.use (req, res, next) ->
         console.log 'Something is happening.'
         next()
@@ -7,11 +9,13 @@ routeFunction = (router,auth,models,dbFunctions,utils) ->
     router.get '/', (req,res) ->
         res.json {message: 'welcome to api!'}
 
-    router.get '/login', (req, res) ->
-        console.log "login route"
+    router.get '/signup', (req, res) ->
+        console.log "signup route"
 
-    loginFunctions = require './auth'
-    router.all '*', auth, loginFunctions.loadUser
+    auth = authFunctions.auth
+    router.all '*', auth, (req,res,next) ->
+        console.log "authenticated"
+        next()
 
     mealTypeRouteFunction = require './meal_type_routes'
     [meals_route, meal_route,past_meals_route] = mealTypeRouteFunction(router, models, dbFunctions,utils)

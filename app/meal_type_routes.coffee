@@ -92,7 +92,7 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
                   res.json {message: 'Successfully deleted'}
 
     past_meals_route = router.route('/:username/past_meals')
-    past_meals_route.all auth, (req, res, next) ->
+    past_meals_route.all (req, res, next) ->
         next()
     past_meals_route.get (req,res) ->
         models.PastMeal.find(username: req.params.username).exec (err, pastMealsArray) ->
