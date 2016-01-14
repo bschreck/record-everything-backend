@@ -4,6 +4,10 @@ var utils = require('./utils');
 var express = require('express');
 var app = express();
 
+var authFunctions = require('./app/auth');
+
+var auth = express.basicAuth(authFunctions.login);
+
 var bodyParser = require('body-parser');
 
 app.use(bodyParser.json({limit: '50mb'}));
@@ -27,6 +31,6 @@ utils.mergeObjects(models, ratingModels);
 
 var dbFunctions = require('./app/db_functions');
 
-require('./app/routes')(router, models, dbFunctions, utils);
+require('./app/routes')(router, auth, models, dbFunctions, utils);
 
 app.listen(port);
