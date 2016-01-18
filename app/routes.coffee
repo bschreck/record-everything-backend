@@ -1,5 +1,5 @@
 authFunctions = require './auth'
-routeFunction = (router,models,dbFunctions,utils) ->
+routeFunction = (router,oauth, models,dbFunctions,utils) ->
 
     router.use (req, res, next) ->
         console.log 'Something is happening.'
@@ -9,11 +9,13 @@ routeFunction = (router,models,dbFunctions,utils) ->
     router.get '/', (req,res) ->
         res.json {message: 'welcome to api!'}
 
+    router.all '/oauth/token', oauth.grant()
+
     router.get '/signup', (req, res) ->
         console.log "signup route"
 
     auth = authFunctions.auth
-    router.all '*', auth, (req,res,next) ->
+    router.all '*', oauth.authorise(), (req,res,next) ->
         console.log "authenticated"
         next()
 
@@ -22,5 +24,7 @@ routeFunction = (router,models,dbFunctions,utils) ->
 
     energyLevelTypeRouteFunction = require './energy_level_type_routes'
     [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, models, dbFunctions,utils)
+
+    router.use oauth.errorHandler()
 
 module.exports = routeFunction
