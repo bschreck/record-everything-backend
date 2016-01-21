@@ -1,5 +1,5 @@
 authFunctions = require './auth'
-routeFunction = (router,oauth, models,dbFunctions,utils) ->
+routeFunction = (router,models,dbFunctions,utils) ->
 
     router.use (req, res, next) ->
         console.log 'Something is happening.'
@@ -9,22 +9,24 @@ routeFunction = (router,oauth, models,dbFunctions,utils) ->
     router.get '/', (req,res) ->
         res.json {message: 'welcome to api!'}
 
-    router.all '/oauth/token', oauth.grant()
-
-    router.get '/signup', (req, res) ->
-        console.log "signup route"
-
     auth = authFunctions.auth
-    router.all '*', oauth.authorise(), (req,res,next) ->
-        console.log "authenticated"
+
+    router.post '/signup', (req, res) ->
+        authFunctions.signup req, res
+
+    #router.all '/oauth/token', oauth.grant()
+
+    router.all '*', auth, (req,res,next) ->
         next()
+    router.post '/login', (req,res) ->
+        res.json {message: "Welcome!"}
 
     mealTypeRouteFunction = require './meal_type_routes'
-    [meals_route, meal_route,past_meals_route] = mealTypeRouteFunction(router, models, dbFunctions,utils)
+    [meals_route, meal_route,past_meals_route] = mealTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
     energyLevelTypeRouteFunction = require './energy_level_type_routes'
-    [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, models, dbFunctions,utils)
+    [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
-    router.use oauth.errorHandler()
+    #router.use oauth.errorHandler()
 
 module.exports = routeFunction

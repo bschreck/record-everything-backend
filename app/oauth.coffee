@@ -86,7 +86,7 @@ model.setClient = (clientId, clientSecret, redirectUri, callback) ->
 model.grantTypeAllowed = (clientId, grantType, callback) ->
   console.log('in grantTypeAllowed (clientId: ' + clientId + ', grantType: ' + grantType + ')')
 
-  if grantType == 'password'
+  if grantType in ['password','authorization_code','client_credentials','refresh_token']
     OAuthClientsModel.findOne {clientId: clientId }, (err, client) ->
       if err
           return callback err, false
@@ -110,12 +110,10 @@ model.saveAccessToken = (token, clientId, expires, userId, callback) ->
 # Required to support password grant type
 #
 model.getUser = (username, password, callback) ->
-  console.log 'in getUser (username: ' + username + ', password: ' + password + ')'
+    console.log 'in getUser (username: ' + username + ', password: ' + password + ')'
 
-  OAuthUsersModel.findOne { username: username, password: password }, (err, user) ->
-    if err
-        return callback err
-    callback null, user._id
+    OAuthUsersModel.findOne { username: username, password: password }, (err, user) ->
+        return callback err, if user? then user._id else false
 
 model.setUser = (username, password, callback) ->
     console.log 'in setUser (username: ' + username + ', password: ' + password + ')'
@@ -125,7 +123,7 @@ model.setUser = (username, password, callback) ->
             return callback err
         if user?
             console.log "user #{username} already exists"
-            return callback null, user._id
+            return callback "user #{username} already exists"
         else
             user = new OAuthUsersModel()
             user.username = username
@@ -139,7 +137,7 @@ model.setUser = (username, password, callback) ->
 # Required to support refreshToken grant type
 #
 model.saveRefreshToken = (token, clientId, expires, userId, callback) ->
-  console.log 'in saveRefreshToken (token: ' + token + ', clientId: ' + clientId +', userId: ' + userId + ', expires: ' + expires + ')'
+  console.log "in saveRefreshToken (token:  #{token}, clientId: #{clientId}, userId: #{userId}, expires: #{expires})"
 
   refreshToken = new OAuthRefreshTokensModel
     refreshToken: token
@@ -153,5 +151,10 @@ model.getRefreshToken = (refreshToken, callback) ->
   console.log 'in getRefreshToken (refreshToken: ' + refreshToken + ')'
 
   OAuthRefreshTokensModel.findOne { refreshToken: refreshToken }, callback
+
+model.revokeRefreshToken = (refreshToken, callback) ->
+  console.log 'in revokeRefreshToken (refreshToken: ' + refreshToken + ')'
+
+  OAuthRefreshTokensModel.remove { refreshToken: refreshToken }, callback
 
 module.exports = model

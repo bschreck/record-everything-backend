@@ -17,12 +17,14 @@ app.use('/api', router);
 var mongoose = require('mongoose');
 mongoose.connect("mongodb://localhost:27017/recordEverythingDB");
 
-var oauthserver = require('oauth2-server');
-app.oauth = oauthserver({
-    model: require('./app/oauth'),
-    grants: ['password', 'client_credentials'],
-    debug: true
-});
+/*
+ *var oauthserver = require('oauth2-server');
+ *app.oauth = oauthserver({
+ *    model: require('./app/oauth'),
+ *    grants: ['password','authorization_code', 'refresh_token'],
+ *    debug: true
+ *});
+ */
 
 var models = {};
 var Meal = require('./app/models/meal');
@@ -34,6 +36,6 @@ utils.mergeObjects(models, ratingModels);
 
 var dbFunctions = require('./app/db_functions');
 
-require('./app/routes')(router, app.oauth, models, dbFunctions, utils);
+require('./app/routes')(router, models, dbFunctions, utils);
 
 app.listen(port);

@@ -1,5 +1,5 @@
-energyLevelTypeRouteFunction = (router, models, dbFunctions, utils) ->
-    energy_levels_route = router.route '/:username/energy_levels'
+energyLevelTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
+    energy_levels_route = router.route '/energy_levels'
     energy_levels_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -10,23 +10,24 @@ energyLevelTypeRouteFunction = (router, models, dbFunctions, utils) ->
                 energyLevel = new models.EnergyLevel()
                 energyLevel.rating = item.rating
                 energyLevel.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-                energyLevel.username = req.params.username
+                energyLevel.username = auth.username
                 dbFunctions.checkIfMealInDB meal,models,saveCallback
             else
                 if errs.length > 0
                     res.send errs
                 else
-                    res.json {message: 'Meals created!'}
+                    res.json {message: 'Energy Levels created!'}
         item = req.body[0]
         energyLevel = new models.EnergyLevel()
         energyLevel.rating = item.rating
         energyLevel.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-        energyLevel.username = req.params.username
+        energyLevel.username = auth.username
         dbFunctions.checkIfEnergyLevelInDB energyLevel,models, saveCallback
 
 
     energy_levels_route.get (req, res) ->
-        models.EnergyLevel.find(username: req.params.username).sort(date:1).exec (err, energyLevels) ->
+        console.log "here"
+        models.EnergyLevel.find(username: auth.username).sort(date:1).exec (err, energyLevels) ->
             if err
                 res.send err
             res.json (energyLevel.toFrontEnd() for energyLevel in energyLevels)
@@ -35,7 +36,7 @@ energyLevelTypeRouteFunction = (router, models, dbFunctions, utils) ->
         energyLevel = new models.EnergyLevel()
         energyLevel.rating = item.rating
         energyLevel.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-        energyLevel.username = req.params.username
+        energyLevel.username = auth.username
 
         dbFunctions.checkIfEnergyLevelInDB energyLevel,models, (energyLevel,energyLevelInDB) ->
             if not energyLevelInDB
@@ -50,16 +51,16 @@ energyLevelTypeRouteFunction = (router, models, dbFunctions, utils) ->
     energy_level_route = router.route('/energy_levels/:energy_level_id')
     energy_level_route.get (req,res) ->
         models.EnergyLevel.findById req.params.energy_level_id, (err,energyLevel) ->
-            if energyLevel.username != req.params.username
-                res.status(401).send "Attempt to update meal of different user"
+            if energyLevel.username != auth.username
+                res.status(401).send "Attempt to update energy level of different user"
             else if err
                 res.send err
             else
                 res.json energyLevel.toFrontEnd()
     energy_level_route.put (req,res) ->
         models.EnergyLevel.findById req.params.meal_id, (err,energyLevel) ->
-            if energyLevel.username != req.params.username
-                res.status(401).send "Attempt to update meal of different user"
+            if energyLevel.username != auth.username
+                res.status(401).send "Attempt to update energy level of different user"
             else if err
                 res.send err
             else
@@ -71,8 +72,8 @@ energyLevelTypeRouteFunction = (router, models, dbFunctions, utils) ->
                         res.send err
                     res.json {message: 'Energy Level updated'}
     energy_level_route.delete (req,res) ->
-        if energyLevel.username != req.params.username
-            res.status(401).send "Attempt to update meal of different user"
+        if energyLevel.username != auth.username
+            res.status(401).send "Attempt to update energy level of different user"
         else if err
             res.send err
         else

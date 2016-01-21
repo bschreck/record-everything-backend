@@ -1,5 +1,5 @@
-mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
-    meals_route = router.route '/:username/meals'
+mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
+    meals_route = router.route '/meals'
     meals_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -18,7 +18,7 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
                 meal.type = item.type
                 meal.photo = item.photo
                 meal.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-                meal.username = req.params.username
+                meal.username = auth.username
                 dbFunctions.checkIfMealInDB meal,models,saveCallback
             else
                 if errs.length > 0
@@ -31,12 +31,12 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
         meal.type = item.type
         meal.photo = item.photo
         meal.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-        meal.username = req.params.username
+        meal.username = auth.username
         dbFunctions.checkIfMealInDB meal,models, saveCallback
 
 
     meals_route.get (req, res) ->
-        models.Meal.find(username: req.params.username).sort(date:1).exec (err, meals) ->
+        models.Meal.find(username: auth.username).sort(date:1).exec (err, meals) ->
             if err
                 res.send err
             res.json (meal.toFrontEnd() for meal in meals)
@@ -47,7 +47,7 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
         meal.type = item.type
         meal.photo = item.photo
         meal.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-        meal.username = req.params.username
+        meal.username = auth.username
         dbFunctions.checkIfMealInDB meal,models, (meal,mealInDB) ->
             if not mealInDB
                 models.PastMeal.incrementMeal meal.name, meal.type, meal.username, (err, numAffected) ->
@@ -83,7 +83,7 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
         models.Meal.findById req.params.meal_id, (err,meal) ->
             if err
                 res.send err
-            if meal.username != req.params.username
+            if meal.username != auth.username
                 res.status(401).send "Attempt to delete meal of different user"
             else
                 models.Meal.remove {_id: req.params.meal_id}, (err,meal)->
@@ -91,11 +91,11 @@ mealTypeRouteFunction = (router, models, dbFunctions, utils) ->
                       res.send err
                   res.json {message: 'Successfully deleted'}
 
-    past_meals_route = router.route('/:username/past_meals')
+    past_meals_route = router.route('/past_meals')
     past_meals_route.all (req, res, next) ->
         next()
     past_meals_route.get (req,res) ->
-        models.PastMeal.find(username: req.params.username).exec (err, pastMealsArray) ->
+        models.PastMeal.find(username: auth.username).exec (err, pastMealsArray) ->
             if err
                 res.send err
             pastMeals = models.PastMeal.toFrontEnd(pastMealsArray)
