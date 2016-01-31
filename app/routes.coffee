@@ -21,8 +21,11 @@ routeFunction = (router,models,dbFunctions,utils) ->
     router.post '/login', (req,res) ->
         res.json {message: "Welcome!"}
 
+    mealBaseTypeRouteFunction = require './meal_base_routes'
+    [meal_base_route] = mealBaseTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+
     mealTypeRouteFunction = require './meal_type_routes'
-    [meals_route, meal_route,past_meals_route] = mealTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+    [meal_route,past_meals_route] = mealTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
     energyLevelTypeRouteFunction = require './energy_level_type_routes'
     [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)

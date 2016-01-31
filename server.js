@@ -27,6 +27,11 @@ mongoose.connect("mongodb://localhost:27017/recordEverythingDB");
  */
 
 var models = {};
+var MealBaseModels = require('./app/models/meal_base')
+models.MealBase = MealBaseModels.MealBaseModel
+models.CookingMethod = MealBaseModels.CookingMethodModel
+models.Ingredient = MealBaseModels.IngredientModel
+
 var Meal = require('./app/models/meal');
 models.Meal = Meal;
 var PastMeal = require('./app/models/past_meal');
