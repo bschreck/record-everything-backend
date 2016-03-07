@@ -209,12 +209,54 @@ module.exports =
         return pickNext
 
 
-    checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
-        findQuery =
-            date: energyLevel.date
-            username: energyLevel.username
-        models.EnergyLevel.findOne findQuery, (err,energyLevel)->
-            if energyLevel?
-                callback energyLevel,true
+    checkIfObjInDBUsingKeys: (models, modelName, keys, obj, callback)->
+        findQuery = {}
+        for key in keys
+            findQuery[key] = obj[key]
+        models[modelName].findOne findQuery, (err,obj)->
+            if obj?
+                callback obj,true
             else
-                callback energyLevel,false
+                callback obj,false
+
+    checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
+        modelName = "EnergyLevel"
+        keys = ["date","username"]
+        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, energyLevel, callback
+    checkIfStomachPainInDB: (stomachPain,models, callback) ->
+        modelName = "StomachPain"
+        keys = ["date","username"]
+        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, stomachPain, callback
+    checkIfBowelMovementInDB: (bowelMovement,models, callback) ->
+        modelName = "BowelMovement"
+        keys = ["date","username"]
+        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, bowelMovement, callback
+    #checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
+        #findQuery =
+            #date: energyLevel.date
+            #username: energyLevel.username
+        #models.EnergyLevel.findOne findQuery, (err,energyLevel)->
+            #if energyLevel?
+                #callback energyLevel,true
+            #else
+                #callback energyLevel,false
+
+    #checkIfStomachPainInDB: (stomachPain,models, callback) ->
+        #findQuery =
+            #date: stomachPain.date
+            #username: stomachPain.username
+        #models.StomachPain.findOne findQuery, (err,stomachPain)->
+            #if stomachPain?
+                #callback stomachPain,true
+            #else
+                #callback stomachPain,false
+
+    #checkIfBowelMovementInDB: (bowelMovement,models, callback) ->
+        #findQuery =
+            #date: bowelMovement.date
+            #username: bowelMovement.username
+        #models.BowelMovement.findOne findQuery, (err,bowelMovement)->
+            #if bowelMovement?
+                #callback bowelMovement,true
+            #else
+                #callback bowelMovement,false

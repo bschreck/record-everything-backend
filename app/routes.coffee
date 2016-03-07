@@ -28,6 +28,12 @@ routeFunction = (router,models,dbFunctions,utils) ->
     [meal_route,past_meals_route] = mealTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
     energyLevelTypeRouteFunction = require './energy_level_type_routes'
-    [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+    energy_levels_routes = energyLevelTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+
+    stomachPainTypeRouteFunction = require './stomach_pain_type_routes'
+    stomachPainTypeRoutes = stomachPainTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+
+    bmTypeRouteFunction = require './bowel_movement_type_routes'
+    bmTypeRoutes = bmTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
 module.exports = routeFunction

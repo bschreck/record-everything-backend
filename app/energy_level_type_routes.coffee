@@ -50,39 +50,8 @@ energyLevelTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                 console.log "in db"
                 res.status(600).send 'Already in db'
     energy_level_route = router.route('/energy_levels/:energy_level_id')
-    #energy_level_route.get (req,res) ->
-        #models.EnergyLevel.findById req.params.energy_level_id, (err,energyLevel) ->
-            #if energyLevel.username != auth.username
-                #res.status(401).send "Attempt to update energy level of different user"
-            #else if err
-                #res.send err
-            #else
-                #res.json energyLevel.toFrontEnd()
-    #energy_level_route.put (req,res) ->
-        #models.EnergyLevel.findById req.params.meal_id, (err,energyLevel) ->
-            #if energyLevel.username != auth.username
-                #res.status(401).send "Attempt to update energy level of different user"
-            #else if err
-                #res.send err
-            #else
-                #if req.body.rating? then energyLevel.rating = req.body.rating
-                #if req.body.date? then energyLevel.date = req.body.date
-                #if req.body.username? then energyLevel.username = req.body.username
-                #energyLevel.save (err)->
-                    #if err
-                        #res.send err
-                    #res.json {message: 'Energy Level updated'}
-    #energy_level_route.delete (req,res) ->
-        #if energyLevel.username != auth.username
-            #res.status(401).send "Attempt to update energy level of different user"
-        #else if err
-            #res.send err
-        #else
-            #models.EnergyLevel.remove {_id: req.params.energy_level_id}, (err,energyLevel)->
-                #if err
-                    #res.send err
-                #res.json {message: 'Successfully deleted'}
 
-    return [energy_levels_route, energy_level_route]
+
+    return energy_levels_route
 
 module.exports = energyLevelTypeRouteFunction

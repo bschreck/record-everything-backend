@@ -82,6 +82,8 @@ function start() {
     models.PastMeal = require('./app/models/past_meal');
     models.Rating = require('./app/models/rating');
     models.EnergyLevel = require('./app/models/energy_level');
+    models.StomachPain = require('./app/models/stomach_pain');
+    models.BowelMovement = require('./app/models/bowel_movement');
 
     var dbFunctions = require('./app/db_functions');
 
