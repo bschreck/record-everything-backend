@@ -10,6 +10,18 @@ MealSchema = new Schema
     type:
         type: String
         required: true
+    ingredientAdditions:
+        type: [{type : mongoose.Schema.ObjectId, ref : 'Ingredient'}]
+        required: false
+    ingredientRemovals:
+        type: [{type : mongoose.Schema.ObjectId, ref : 'Ingredient'}]
+        required: false
+    cookingMethodAdditions:
+        type: [{type : mongoose.Schema.ObjectId, ref : 'CookingMethod'}]
+        required: false
+    cookingMethodRemovals:
+        type: [{type : mongoose.Schema.ObjectId, ref : 'CookingMethod'}]
+        required: false
     photo:
         type: String
         required: false
@@ -32,6 +44,10 @@ MealSchema.plugin deepPopulate, {}
 
 MealSchema.methods.toFrontEnd = ->
     type:    this.type
+    cookingMethodAdditions: (cm.name for cm in this.cookingMethodAdditions)
+    ingredientAdditions:    (ing.name for ing in this.ingredientAdditions)
+    cookingMethodRemovals: (cm.name for cm in this.cookingMethodRemovals)
+    ingredientRemovals:    (ing.name for ing in this.ingredientRemovals)
     date:    this.date
     serverId: this._id
     jsonId: this.objectId

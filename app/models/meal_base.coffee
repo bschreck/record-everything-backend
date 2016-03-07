@@ -1,20 +1,6 @@
 mongoose = require 'mongoose'
 Schema = mongoose.Schema
 
-CookingMethodSchema = new Schema
-    name:
-        type: String
-        required: true
-        enum: ["Bake","Roast","Broil","Grill","Microwave","Raw","Stir-Fry","Fry","Saute","Boil","Simmer"]
-CookingMethodSchema.index {name: 1},{unique: true}
-
-IngredientSchema = new Schema
-    name:
-        type: String
-        required: true
-
-IngredientSchema.index {name: 1},{unique: true}
-
 MealBaseSchema = new Schema
     name:
         type: String
@@ -44,10 +30,4 @@ MealBaseSchema.methods.toFrontEnd = ->
     ingredients:    (ing.name for ing in this.ingredients)
     jsonId:       this.objectId
 
-IngredientModel = mongoose.model 'Ingredient', IngredientSchema
-CookingMethodModel = mongoose.model 'CookingMethod', CookingMethodSchema
-MealBaseModel = mongoose.model 'MealBase', MealBaseSchema
-module.exports =
-    IngredientModel:    IngredientModel
-    CookingMethodModel: CookingMethodModel
-    MealBaseModel:      MealBaseModel
+module.exports = mongoose.model 'MealBase', MealBaseSchema

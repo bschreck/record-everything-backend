@@ -1,46 +1,91 @@
 require('coffee-script').register()
 var utils = require('./utils');
 
-var express = require('express');
-var app = express();
+var program = require('commander');
+var prompt = require('prompt');
+var colors = require('colors/safe');
+var slug = require('slug');
+var path = require('path');
+var fs = require('fs');
 
-var bodyParser = require('body-parser');
+migrations = require('./migrate')
+//
 
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-var port = process.env.PORT || 8080;
+//taken from npm module mongoose-migration and turned into coffeescript:
+program
+    .command('minit')
+    .description('Init migrations on current path')
+    .action(migrations.init);
 
-var router = express.Router()
-app.use('/api', router);
+program
+  .command('mcreate <description>')
+  .description('Create Migration')
+  .action(migrations.createMigration);
 
-var mongoose = require('mongoose');
-mongoose.connect("mongodb://localhost:27017/recordEverythingDB");
+program
+  .command('mdown [number_of_migrations] (default = 1)')
+  .description('Migrate down')
+  .action(migrations.migrate.bind(null, 'down', process.exit));
 
-/*
- *var oauthserver = require('oauth2-server');
- *app.oauth = oauthserver({
- *    model: require('./app/oauth'),
- *    grants: ['password','authorization_code', 'refresh_token'],
- *    debug: true
- *});
- */
+program
+  .command('mup [number_of_migrations]')
+  .description('Migrate up (default command)')
+  .action(migrations.migrate.bind(null, 'up', process.exit));
 
-var models = {};
-var MealBaseModels = require('./app/models/meal_base')
-models.MealBase = MealBaseModels.MealBaseModel
-models.CookingMethod = MealBaseModels.CookingMethodModel
-models.Ingredient = MealBaseModels.IngredientModel
+program
+  .command('start')
+  .description('Start server')
+  .action(start)
 
-var Meal = require('./app/models/meal');
-models.Meal = Meal;
-var PastMeal = require('./app/models/past_meal');
-models.PastMeal = PastMeal;
-var ratingModels = require('./app/models/rating');
-utils.mergeObjects(models, ratingModels);
+program.version(require('./package.json').version);
 
-var dbFunctions = require('./app/db_functions');
+program.parse(process.argv);
+// Default command ?
+if (program.args.length === 0) {
+    start();
+    process.exit();
+}
 
-require('./app/routes')(router, models, dbFunctions, utils);
+function start() {
 
-app.listen(port);
+    var express = require('express');
+    var app = express();
+
+    var bodyParser = require('body-parser');
+
+    app.use(bodyParser.json({limit: '50mb'}));
+    app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+    var port = process.env.PORT || 8080;
+
+    var router = express.Router()
+    app.use('/api', router);
+
+    var mongoose = require('mongoose');
+    mongoose.connect("mongodb://localhost:27017/recordEverythingDB");
+
+    /*
+     *var oauthserver = require('oauth2-server');
+     *app.oauth = oauthserver({
+     *    model: require('./app/oauth'),
+     *    grants: ['password','authorization_code', 'refresh_token'],
+     *    debug: true
+     *});
+     */
+
+    var models = {};
+    models.CookingMethod = require('./app/models/cooking_method')
+    models.Ingredient = require('./app/models/ingredient')
+    models.MealBase = require('./app/models/meal_base')
+    models.Meal = require('./app/models/meal');
+    models.PastMeal = require('./app/models/past_meal');
+    models.Rating = require('./app/models/rating');
+    models.EnergyLevel = require('./app/models/energy_level');
+
+    var dbFunctions = require('./app/db_functions');
+
+    require('./app/routes')(router, models, dbFunctions, utils);
+
+    app.listen(port);
+}

@@ -2,18 +2,14 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
     meal_route = router.route '/meal'
 
     meal_route.get (req, res) ->
-        populateQueryCM =
-            path: 'mealBase'
-            populate:
-                path: 'cookingMethods'
-                model: 'CookingMethod'
-        populateQueryIng =
-            path: 'mealBase'
-            populate:
-                path: 'ingredients'
-                model: 'Ingredient'
         models.Meal.find(username: auth.username).sort(date:1).exec (err,meals)->
-            models.Meal.deepPopulate meals, 'mealBase mealBase.cookingMethods mealBase.ingredients', (err, _meals) ->
+            prefix = ['cookingMethod', 'ingredient']
+            suffix = ['Additions', 'Removals']
+            populateItems = []
+            populateItems = populateItems.concat p+s for p in prefix for s in suffix
+            populateItems = populateItems.join('')
+            populateItems += 'mealBase mealBase.cookingMethods mealBase.ingredients'
+            models.Meal.deepPopulate meals, populateItems, (err, _meals) ->
                 console.log meals
                 if err
                     res.status(401).send err
@@ -75,6 +71,8 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         #TODO: need to reintroduce the "edit" flag
 
         item = req.body
+        console.log "ITEM:"
+        console.log item
 
         if not item.jsonId?
             console.log "no object id provided"
@@ -84,19 +82,26 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
             console.log "no base object id provided"
             res.status(500).send "no base object id provided"
             return
+        cookingMethodAdditions = if item.cookingMethodAdditionNames? then item.cookingMethodAdditionNames else []
+        cookingMethodRemovals  = if item.cookingMethodRemovalNames? then item.cookingMethodRemovalNames else []
+        ingredientAdditions    = if item.ingredientAdditionNames? then item.ingredientAdditionNames else []
+        ingredientRemovals     = if item.ingredientRemovalNames? then item.ingredientRemovalNames else []
         newMeal =
-            type:     item.type
-            photo:    item.photo
-            date:     utils.roundDateToNearest10Min(new Date(item.date*1000))
-            username: auth.username
-            objectId: item.jsonId
+            type:                   item.type
+            ingredientAdditions:    ingredientAdditions
+            ingredientRemovals:     ingredientRemovals
+            cookingMethodAdditions: cookingMethodAdditions
+            cookingMethodRemovals:  cookingMethodRemovals
+            photo:                  item.photo
+            date:                   utils.roundDateToNearest10Min(new Date(item.date*1000))
+            username:               auth.username
+            objectId:               item.jsonId
         mealBase =
             name:           item.name
             username:       auth.username
             cookingMethods: item.cookingMethods
             ingredients:    item.ingredients
             objectId:       item.baseObjectId
-        console.log "mealbase:",mealBase
         if item.edit
             dbFunctions.updateMeal newMeal, mealBase, models, (err,meal)->
                 if err
@@ -106,14 +111,16 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                     res.json {message: "Successfully updated"}
                     return
         else
+            console.log "entering create meal"
             dbFunctions.createMeal newMeal, mealBase, models, (err,meal)->
+                console.log "finished creating meal"
                 if err
-                    if err == "Meal already in DB"
-                        res.status(600).send err
+                    if err == "Meal already in DB" or err.code = 11000
+                        res.status(600).send {message:"Meal already in DB"}
                         return
                     else
                         console.log "create meal err:",err
-                        res.status(500).send err
+                        res.status(500).send {message: "unknown error"}
                         return
                 else
                     console.log "successfully created"

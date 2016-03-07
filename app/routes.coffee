@@ -30,6 +30,4 @@ routeFunction = (router,models,dbFunctions,utils) ->
     energyLevelTypeRouteFunction = require './energy_level_type_routes'
     [energy_levels_route, energy_level_route] = energyLevelTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
-    #router.use oauth.errorHandler()
-
 module.exports = routeFunction

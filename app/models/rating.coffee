@@ -29,10 +29,4 @@ RatingSchema.methods.toFrontEnd = ->
 
 Rating = mongoose.model 'Rating', RatingSchema
 
-EnergyLevelSchema = Rating.discriminator 'EnergyLevel',
-    new mongoose.Schema({})
-
-EnergyLevel = mongoose.model 'EnergyLevel', EnergyLevelSchema
-module.exports =
-    Rating: Rating
-    EnergyLevel: EnergyLevel
+module.exports = Rating

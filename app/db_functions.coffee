@@ -3,22 +3,60 @@ module.exports =
         throw "not implemented"
 
     createMeal: (newMeal, mealBase, models, callback) ->
-        module.exports.checkIfMealInDB newMeal, models, (meal, mealInDB)->
-            if not mealInDB
-                module.exports.createFindOrUpdateMealBaseWithSubdocs mealBase, models, false,(err,mealBaseID)->
-                    meal = new models.Meal
-                        name:           newMeal.name
-                        username:       newMeal.username
-                        type:           newMeal.type
-                        date:           newMeal.date
-                        photo:          newMeal.photo
-                        mealBase:       mealBaseID
-                        objectId:       newMeal.objectId
-                    console.log "create or find mealbase err:", err
-                    console.log "mealBaseID:", mealBaseID
-                    meal.save callback
-            else
-                callback "Meal already in DB", null
+        module.exports.createFindOrUpdateMealBaseWithSubdocs mealBase, models, false,(err,mealBaseID)->
+            if err?
+                console.log "create or find mealbase err:", err
+                console.log "mealBaseID:", mealBaseID
+            newMeal.mealBase = mealBaseID
+            module.exports.checkIfMealInDB newMeal, models, (meal, mealInDB)->
+                if mealInDB
+                    callback "Meal already in DB", null
+                else
+                    cookingMethodAdditions = newMeal.cookingMethodAdditions
+                    cookingMethodRemovals = newMeal.cookingMethodRemovals
+                    ingredientAdditions = newMeal.ingredientAdditions
+                    ingredientRemovals = newMeal.ingredientRemovals
+
+                    cookingMethodAdditionIDs = []
+                    cookingMethodRemovalIDs = []
+                    ingredientAdditionIDs = []
+                    ingredientRemovalIDs = []
+                    state = "cm_addition"
+                    actuallyCreateMeal = ()->
+                        meal = new models.Meal
+                            username:               newMeal.username
+                            type:                   newMeal.type
+                            ingredientAdditions:    ingredientAdditionIDs
+                            ingredientRemovals:     ingredientRemovalIDs
+                            cookingMethodAdditions: cookingMethodAdditionIDs
+                            cookingMethodRemovals:  cookingMethodRemovalIDs
+                            date:                   newMeal.date
+                            photo:                  newMeal.photo
+                            mealBase:               mealBaseID
+                            objectId:               newMeal.objectId
+                        meal.save callback
+                    order = ["cm_addition","cm_removal","ing_addition","ing_removal"]
+                    info =
+                        "cm_addition":
+                            func: module.exports.createCM
+                            data: cookingMethodAdditions
+                            ids:  cookingMethodAdditionIDs
+                        "cm_removal":
+                            func: module.exports.createCM
+                            data: cookingMethodRemovals
+                            ids:  cookingMethodRemovalIDs
+                        "ing_addition":
+                            func: module.exports.createIngredient
+                            data: ingredientAdditions
+                            ids:  ingredientAdditionIDs
+                        "ing_removal":
+                            func: module.exports.createIngredient
+                            data: ingredientRemovals
+                            ids:  ingredientRemovalIDs
+                    pickNext = module.exports.pickNextItemToSave(state, actuallyCreateMeal,
+                        order, info, models)
+                    pickNext(null,null)
+
 
     checkIfCookingMethodInDBAndCreate: (name,models, callback) ->
         findQuery =
@@ -67,13 +105,14 @@ module.exports =
 
     checkIfMealInDB: (meal,models, callback) ->
         findQuery =
-            name:     meal.name
             type:     meal.type
             date:     meal.date
             username: meal.username
             mealBase: meal.mealBase
+        console.log "checking for duplicates:", findQuery
         models.Meal.findOne findQuery, (err,dbMeal)->
             if dbMeal?
+                console.log "found duplicate meal"
                 callback dbMeal,true
             else
                 callback dbMeal,false
@@ -113,10 +152,6 @@ module.exports =
             if ing? then callback err,ing._id else callback err,null
 
     createFindOrUpdateMealBaseWithSubdocs: (newMealBase, models, edit,callback) ->
-        cmIndex = 0
-        ingredientIndex = 0
-        cookingMethodIDs = []
-        ingredientIDs = []
         if not newMealBase.name?
             callback "no name provided", null
         if not newMealBase.username?
@@ -136,35 +171,42 @@ module.exports =
             else
                 cookingMethods = if newMealBase.cookingMethods? then newMealBase.cookingMethods else []
                 ingredients = if newMealBase.ingredients? then newMealBase.ingredients else []
+                cookingMethodIDs = []
+                ingredientIDs = []
+                actuallyCreateMealBase = ()->
+                    createFunc = if edit then module.exports.updateMealBase else module.exports.createMealBase
+                    createFunc(newMealBase.objectId,newMealBase.name,newMealBase.username,
+                        cookingMethodIDs, ingredientIDs, models, callback)
 
+                order = ["cm", "ing"]
+                info =
+                    "cm":
+                        func: module.exports.createCM
+                        data: cookingMethods
+                        ids:  cookingMethodIDs
+                    "ing":
+                        func: module.exports.createIngredient
+                        data: ingredients
+                        ids:  ingredientIDs
+                state = "cm"
+                pickNext = module.exports.pickNextItemToSave state, actuallyCreateMealBase,
+                    order, info, models
+                pickNext(null,null)
 
-                ingCallback = (err,ing_id)->
-                    ingredientIDs.push ing_id
-                    ingredientIndex += 1
-                    if ingredientIndex < ingredients.length
-                        module.exports.createIngredient(ingredients[ingredientIndex], models, ingCallback)
-                    else if not edit
-                        module.exports.createMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
-                    else
-                        module.exports.updateMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
-                cmCallback = (err,cm_id)->
-                    cookingMethodIDs.push cm_id
-                    cmIndex += 1
-                    if cmIndex < cookingMethods.length
-                        module.exports.createCM(cookingMethods[cmIndex], models, cmCallback)
-                    else if ingredients.length > 0
-                        module.exports.createIngredient(ingredients[ingredientIndex], models, ingCallback)
-                    else if not edit
-                        module.exports.createMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
-                    else
-                        module.exports.updateMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
-
-                if cookingMethods.length > 0
-                    module.exports.createCM cookingMethods[cmIndex], models, cmCallback
-                else if not edit
-                    module.exports.createMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
-                else
-                    module.exports.updateMealBase(newMealBase.objectId, newMealBase.name, newMealBase.username, cookingMethodIDs, ingredientIDs, models, callback)
+    pickNextItemToSave: (stateVar, finishFunc, stateOrder, info, models) ->
+        pickNext = (err,obj_id) ->
+            if not err? and obj_id?
+                info[stateVar]["ids"].push obj_id
+            for dtype in stateOrder[(stateOrder.indexOf stateVar)..]
+                data = info[dtype]['data']
+                func = info[dtype]['func']
+                if data.length > 0
+                    stateVar = dtype
+                    newDatum = data.shift()
+                    func newDatum, models, pickNext
+                    return
+            finishFunc()
+        return pickNext
 
 
     checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
