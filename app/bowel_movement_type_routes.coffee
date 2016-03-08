@@ -9,7 +9,7 @@ bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                 item = req.body[itemIndex]
                 bowelMovement = new models.BowelMovement()
                 bowelMovement.bsScale = item.bsScale
-                bowelMovement.photo = if item.photo? then item.photo else null
+                bowelMovement.duration = item.duration
                 bowelMovement.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
                 bowelMovement.username = auth.username
                 dbFunctions.checkIfMealInDB meal,models,saveCallback
@@ -21,7 +21,7 @@ bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         item = req.body[0]
         bowelMovement = new models.BowelMovement()
         bowelMovement.bsScale = item.bsScale
-        bowelMovement.photo = if item.photo? then item.photo else null
+        bowelMovement.duration = item.duration
         bowelMovement.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         bowelMovement.username = auth.username
         dbFunctions.checkIfBowelMovementInDB bowelMovement,models, saveCallback
@@ -37,7 +37,7 @@ bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         console.log item
         bowelMovement = new models.BowelMovement()
         bowelMovement.bsScale = item.bsScale
-        bowelMovement.photo = if item.photo? then item.photo else null
+        bowelMovement.duration = item.duration
         bowelMovement.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         bowelMovement.username = auth.username
         bowelMovement.objectId = item.jsonId

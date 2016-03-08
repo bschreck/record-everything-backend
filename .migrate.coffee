@@ -9,5 +9,6 @@ CONFIG =
       "Rating": "app/models/rating.coffee"
       "Ingredient": "app/models/ingredient.coffee"
       "PastMeal": "app/models/past_meal.coffee"
+      "BowelMovement": "app/models/bowel_movement.coffee"
 
 module.exports = CONFIG

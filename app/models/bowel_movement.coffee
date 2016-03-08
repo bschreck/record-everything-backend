@@ -14,9 +14,9 @@ BowelMovementSchema = new Schema
     date:
         type: Date
         required: true
-    photo:
-        type: String
-        required: false
+    duration:
+        type: Number
+        required: true
     username:
         type: String
         required: true
@@ -29,6 +29,7 @@ BowelMovementSchema.index {objectId: 1},{unique: true}
 BowelMovementSchema.methods.toFrontEnd = ->
     objectId: this.objectId
     bsScale: this.bsScale
+    duration: this.duration
     date:   this.date
 
 
