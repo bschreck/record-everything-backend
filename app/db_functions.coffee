@@ -6,7 +6,9 @@ module.exports =
         module.exports.createFindOrUpdateMealBaseWithSubdocs mealBase, models, false,(err,mealBaseID)->
             if err?
                 console.log "create or find mealbase err:", err
+                callback(err,null)
             newMeal.mealBase = mealBaseID
+            console.log 'found mealbase'
             module.exports.checkIfMealInDB newMeal, models, (meal, mealInDB)->
                 if mealInDB
                     callback "Meal already in DB", null
@@ -22,6 +24,7 @@ module.exports =
                     ingredientRemovalIDs = []
                     state = "cm_addition"
                     actuallyCreateMeal = ()->
+                        console.log 'creating meal'
                         meal = new models.Meal
                             username:               newMeal.username
                             type:                   newMeal.type
@@ -159,10 +162,13 @@ module.exports =
             callback "must have at least one cooking method", null
         module.exports.checkIfMealBaseInDB newMealBase, models, (err, mealBase, mbInDB)->
             if err
+                console.log 'check if mealbase in db error'
                 callback err, null
             else if mbInDB and not edit
+                console.log 'mealbase in db'
                 callback null, mealBase._id
             else
+                console.log 'mealbase not in db, creating'
                 cookingMethods = if newMealBase.cookingMethods? then newMealBase.cookingMethods else []
                 ingredients = if newMealBase.ingredients? then newMealBase.ingredients else []
                 cookingMethodIDs = []

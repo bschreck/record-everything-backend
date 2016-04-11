@@ -70,7 +70,11 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
 
         item = req.body
         console.log "ITEM:"
-        console.log item.type, item.jsonId,item.name,item.date
+        console.log 'type:',item.type
+        console.log 'jsonId:', item.jsonId
+        console.log 'name:',item.name
+        console.log 'date:',item.date
+        console.log 'mealBase objectID:', item.baseObjectId
 
         if not item.jsonId?
             console.log "no object id provided"
@@ -111,11 +115,13 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         else
             dbFunctions.createMeal newMeal, mealBase, models, (err,meal)->
                 if err
+                    console.log 'err creating meal'
                     if err == "Meal already in DB" or err.code = 11000
+                        console.log 'meal already in db:',err.code
                         res.status(600).send {message:"Meal already in DB"}
                         return
                     else
-                        console.log "create meal err:",err
+                        console.log "other create meal err:",err
                         res.status(500).send {message: "unknown error"}
                         return
                 else
