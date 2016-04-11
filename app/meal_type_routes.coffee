@@ -25,41 +25,45 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                     mealsWithBases.push mealFrontEnd
                 res.json mealsWithBases
 
-    #meal_route.post (req, res) ->
-        #itemIndex = 0
-        #errs = []
-        #saveCallback = (meal,mealInDB) ->
-            #if not mealInDB
-                #models.PastMeal.incrementMeal meal.name, meal.type, meal.username, (err, numAffected) ->
-                    #if err then console.log "past meal increment error:",err
-                #meal.save (err) ->
-                    #if err
-                        #errs.push err
-            #itemIndex += 1
-            #if itemIndex < req.body.length
-                #item = req.body[itemIndex]
-                #meal = new models.Meal()
-                #meal.name = item.name
-                #meal.type = item.type
-                #meal.photo = item.photo
-                #meal.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-                #meal.username = auth.username
-                #dbFunctions.checkIfMealInDB meal,models,saveCallback
-            #else
-                #if errs.length > 0
-                    #res.status(401).send errs
-                #else
-                    #res.json {message: 'Meals created!'}
-        #item = req.body[0]
-        #meal = new models.Meal()
-        #meal.name = item.name
-        #meal.type = item.type
-        #meal.photo = item.photo
-        #meal.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
-        #meal.username = auth.username
-        #dbFunctions.checkIfMealInDB meal,models, saveCallback
+    meal_route.post (req, res) ->
+        mealsToProcess = req.body
+        console.log "posting #{mealsToProcess.length} meals"
+        for meal,index in mealsToProcess
+            if not meal.jsonId?
+                console.log "no object id provided for meal index #{index}"
+                res.status(500).send "no object id provided for meal index #{index}"
+                return
+            if not meal.baseObjectId?
+                console.log "no base object id provided for meal index #{index}"
+                res.status(500).send "no base object id provided for meal index #{index}"
+                return
+        savedMeals = []
+        unsavedMeals = []
 
-
+        processMeal = (index, next)->
+            item = mealsToProcess[index]
+            roundDate = utils.roundDateToNearest10Min
+            [newMeal, mealBase] = dbFunctions.parseMeal item, auth.username, roundDate
+            dbFunctions.createMeal newMeal, mealBase, models, (err,meal)->
+                if err
+                    console.log 'err creating meal'
+                    if err == "Meal already in DB" or err.code = 11000
+                        console.log 'meal already in db:',err.code
+                        savedMeals.push newMeal.objectId
+                    else
+                        console.log "other create meal err:",err
+                        unsavedMeals.push newMeal.objectId
+                else
+                    console.log "successfully created"
+                    savedMeals.push newMeal.objectId
+                index += 1
+                if index == mealsToProcess.length
+                    res.json
+                        savedMeals: savedMeals
+                        unsavedMeals: unsavedMeals
+                else
+                    next(index,next)
+        processMeal(0,processMeal)
 
     meal_route.put (req,res) ->
         ##if item has mealBase ID, grab that entity
@@ -84,26 +88,8 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
             console.log "no base object id provided"
             res.status(500).send "no base object id provided"
             return
-        cookingMethodAdditions = if item.cookingMethodAdditionNames? then item.cookingMethodAdditionNames else []
-        cookingMethodRemovals  = if item.cookingMethodRemovalNames? then item.cookingMethodRemovalNames else []
-        ingredientAdditions    = if item.ingredientAdditionNames? then item.ingredientAdditionNames else []
-        ingredientRemovals     = if item.ingredientRemovalNames? then item.ingredientRemovalNames else []
-        newMeal =
-            type:                   item.type
-            ingredientAdditions:    ingredientAdditions
-            ingredientRemovals:     ingredientRemovals
-            cookingMethodAdditions: cookingMethodAdditions
-            cookingMethodRemovals:  cookingMethodRemovals
-            photo:                  item.photo
-            date:                   utils.roundDateToNearest10Min(new Date(item.date*1000))
-            username:               auth.username
-            objectId:               item.jsonId
-        mealBase =
-            name:           item.name
-            username:       auth.username
-            cookingMethods: item.cookingMethods
-            ingredients:    item.ingredients
-            objectId:       item.baseObjectId
+        roundDate = utils.roundDateToNearest10Min
+        [newMeal, mealBase] = dbFunctions.parseMeal item, auth.username, roundDate
         if item.edit
             dbFunctions.updateMeal newMeal, mealBase, models, (err,meal)->
                 if err

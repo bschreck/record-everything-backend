@@ -1,4 +1,26 @@
 module.exports =
+    parseMeal: (item, username, roundDate) ->
+        cookingMethodAdditions = if item.cookingMethodAdditionNames? then item.cookingMethodAdditionNames else []
+        cookingMethodRemovals  = if item.cookingMethodRemovalNames? then item.cookingMethodRemovalNames else []
+        ingredientAdditions    = if item.ingredientAdditionNames? then item.ingredientAdditionNames else []
+        ingredientRemovals     = if item.ingredientRemovalNames? then item.ingredientRemovalNames else []
+        newMeal =
+            type:                   item.type
+            ingredientAdditions:    ingredientAdditions
+            ingredientRemovals:     ingredientRemovals
+            cookingMethodAdditions: cookingMethodAdditions
+            cookingMethodRemovals:  cookingMethodRemovals
+            photo:                  item.photo
+            date:                   roundDate(new Date(item.date*1000))
+            username:               username
+            objectId:               item.jsonId
+        mealBase =
+            name:           item.name
+            username:       username
+            cookingMethods: item.cookingMethods
+            ingredients:    item.ingredients
+            objectId:       item.baseObjectId
+        [newMeal, mealBase]
     updateMeal: (newMeal, mealBase, models, callback) ->
         throw "not implemented"
 

@@ -36,7 +36,12 @@ program
 program
   .command('start')
   .description('Start server')
-  .action(start)
+  .action(startServer)
+
+program
+  .command('startlocal')
+  .description('Start server locally')
+  .action(startLocal)
 
 program.version(require('./package.json').version);
 
@@ -46,8 +51,16 @@ if (program.args.length === 0) {
     start();
     process.exit();
 }
+function startLocal() {
+  var env = "local";
+  start(env);
+}
+function startServer() {
+  var env = "production";
+  start(env);
+}
 
-function start() {
+function start(env) {
 
     var express = require('express');
     var app = express();
@@ -57,7 +70,11 @@ function start() {
     app.use(bodyParser.json({limit: '50mb'}));
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-    var port = process.env.PORT || 80;
+    if (env == "local") {
+      var port = process.env.PORT || 8080;
+    } else {
+      var port = process.env.PORT || 80;
+    }
     console.log(port);
 
     var router = express.Router()
