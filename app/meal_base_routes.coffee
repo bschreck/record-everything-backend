@@ -2,16 +2,12 @@ mealBaseTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
     meal_base_route = router.route '/meal_base'
 
     meal_base_route.get (req, res) ->
-        console.log "in get"
         models.MealBase.find({username: auth.username}).populate('cookingMethods ingredients').exec (err, mealBases) ->
             if err
                 res.status(401).send err
-            console.log (mealBase.toFrontEnd() for mealBase in mealBases)
             res.json (mealBase.toFrontEnd() for mealBase in mealBases)
 
     meal_base_route.put (req,res) ->
-        console.log "PUT"
-        console.log "REQ:", req.body
         item = req.body
         mealBase =
             name:           item.name
@@ -25,15 +21,12 @@ mealBaseTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                 console.log "unable to create meal base:, ",err
                 res.status(500).send err
             else
-                console.log "returning id"
                 res.json {message: "Successfully created or found meal base"}
 
 
     meal_base_route.delete (req,res) ->
         item = req.body
-        console.log "id:",item.serverId
         models.MealBase.findOne {objectId: item.jsonId}, (err,mealBase) ->
-            console.log "mealbase:", mealBase
             if err or not mealBase?
                 res.status(401).send err
             else if mealBase.username != auth.username

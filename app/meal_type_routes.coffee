@@ -10,7 +10,6 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
             populateItems = populateItems.join('')
             populateItems += 'mealBase mealBase.cookingMethods mealBase.ingredients'
             models.Meal.deepPopulate meals, populateItems, (err, _meals) ->
-                console.log meals
                 if err
                     res.status(401).send err
                 mealsWithBases = []
@@ -18,7 +17,6 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                     mealFrontEnd = meal.toFrontEnd()
 
                     mealBaseFrontEnd = meal.mealBase.toFrontEnd()
-                    console.log mealBaseFrontEnd
                     mealFrontEnd.cookingMethods = mealBaseFrontEnd.cookingMethods
                     mealFrontEnd.ingredients = mealBaseFrontEnd.ingredients
                     mealFrontEnd.name = mealBaseFrontEnd.name
@@ -72,7 +70,7 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
 
         item = req.body
         console.log "ITEM:"
-        console.log item
+        console.log item.type, item.jsonId,item.name,item.date
 
         if not item.jsonId?
             console.log "no object id provided"
@@ -111,9 +109,7 @@ mealTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
                     res.json {message: "Successfully updated"}
                     return
         else
-            console.log "entering create meal"
             dbFunctions.createMeal newMeal, mealBase, models, (err,meal)->
-                console.log "finished creating meal"
                 if err
                     if err == "Meal already in DB" or err.code = 11000
                         res.status(600).send {message:"Meal already in DB"}

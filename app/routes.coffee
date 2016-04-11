@@ -2,7 +2,6 @@ authFunctions = require './auth'
 routeFunction = (router,models,dbFunctions,utils) ->
 
     router.use (req, res, next) ->
-        console.log 'Something is happening.'
         next()
 
 
