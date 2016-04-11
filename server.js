@@ -57,7 +57,8 @@ function start() {
     app.use(bodyParser.json({limit: '50mb'}));
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-    var port = process.env.PORT || 8080;
+    var port = process.env.PORT || 80;
+    console.log(port);
 
     var router = express.Router()
     app.use('/api', router);
