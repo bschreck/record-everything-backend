@@ -1,5 +1,12 @@
+express = require 'express'
+
 mealBaseTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
     meal_base_route = router.route '/meal_base'
+
+    enum_values_route = router.route '/meal_base/cooking_method_enums'
+    enum_values_route.get (req,res) ->
+        enumValues = models.CookingMethod.schema.path('name').enumValues
+        res.json enumValues
 
     meal_base_route.get (req, res) ->
         models.MealBase.find({username: auth.username}).populate('cookingMethods ingredients').exec (err, mealBases) ->
