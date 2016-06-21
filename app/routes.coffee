@@ -32,6 +32,9 @@ routeFunction = (router,models,dbFunctions,utils) ->
     stomachPainTypeRouteFunction = require './stomach_pain_type_routes'
     stomachPainTypeRoutes = stomachPainTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 
+    sicknessTypeRouteFunction = require './sickness_type_routes'
+    sicknessTypeRoutes = sicknessTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
+
     bmTypeRouteFunction = require './bowel_movement_type_routes'
     bmTypeRoutes = bmTypeRouteFunction(router, authFunctions, models, dbFunctions,utils)
 

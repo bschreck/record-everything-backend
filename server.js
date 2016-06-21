@@ -101,6 +101,7 @@ function start(env) {
     models.Rating = require('./app/models/rating');
     models.EnergyLevel = require('./app/models/energy_level');
     models.StomachPain = require('./app/models/stomach_pain');
+    models.Sickness = require('./app/models/sickness');
     models.BowelMovement = require('./app/models/bowel_movement');
 
     var dbFunctions = require('./app/db_functions');

@@ -249,6 +249,10 @@ module.exports =
         modelName = "StomachPain"
         keys = ["date","username"]
         module.exports.checkIfObjInDBUsingKeys models, modelName, keys, stomachPain, callback
+    checkIfSicknessInDB: (sickness,models, callback) ->
+        modelName = "Sickness"
+        keys = ["date","username"]
+        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, sickness, callback
     checkIfBowelMovementInDB: (bowelMovement,models, callback) ->
         modelName = "BowelMovement"
         keys = ["date","username"]
