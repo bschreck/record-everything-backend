@@ -15,7 +15,6 @@ routeFunction = (router,models,dbFunctions,utils) ->
     #router.all '/oauth/token', oauth.grant()
 
     router.all '*', auth, (req,res,next) ->
-        console.log "ROUTE:", req.url
         next()
     router.post '/login', (req,res) ->
         res.json {message: "Welcome!"}
