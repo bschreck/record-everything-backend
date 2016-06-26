@@ -1,5 +1,12 @@
 sicknessTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
+    return
     sicknesses_route = router.route '/sicknesses'
+
+    checkIfSicknessInDB = (sickness,models, callback) ->
+        modelName = "Sickness"
+        keys = ["date","username"]
+        dbFunctions.checkIfObjInDBUsingKeys models, modelName, keys, sickness, callback
+
     sicknesses_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -22,7 +29,7 @@ sicknessTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         sickness.rating = item.rating
         sickness.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         sickness.username = auth.username
-        dbFunctions.checkIfSicknessInDB sickness,models, saveCallback
+        checkIfSicknessInDB sickness,models, saveCallback
 
 
     sicknesses_route.get (req, res) ->
@@ -39,7 +46,7 @@ sicknessTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         sickness.username = auth.username
         sickness.objectId = item.jsonId
 
-        dbFunctions.checkIfSicknessInDB sickness,models, (_,sicknessInDB) ->
+        checkIfSicknessInDB sickness,models, (_,sicknessInDB) ->
             if not sicknessInDB
                 sickness.save (err) ->
                     if err

@@ -1,5 +1,12 @@
 stomachPainTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
+    return
     stomach_pains_route = router.route '/stomach_pains'
+
+    checkIfStomachPainInDB = (stomachPain,models, callback) ->
+        modelName = "StomachPain"
+        keys = ["date","username"]
+        dbFunctions.checkIfObjInDBUsingKeys models, modelName, keys, stomachPain, callback
+
     stomach_pains_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -22,7 +29,7 @@ stomachPainTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         stomachPain.rating = item.rating
         stomachPain.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         stomachPain.username = auth.username
-        dbFunctions.checkIfStomachPainInDB stomachPain,models, saveCallback
+        checkIfStomachPainInDB stomachPain,models, saveCallback
 
 
     stomach_pains_route.get (req, res) ->
@@ -39,7 +46,7 @@ stomachPainTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         stomachPain.username = auth.username
         stomachPain.objectId = item.jsonId
 
-        dbFunctions.checkIfStomachPainInDB stomachPain,models, (_,stomachPainInDB) ->
+        checkIfStomachPainInDB stomachPain,models, (_,stomachPainInDB) ->
             if not stomachPainInDB
                 stomachPain.save (err) ->
                     if err

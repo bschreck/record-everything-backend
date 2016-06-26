@@ -31,4 +31,4 @@ RatingSchema.methods.toFrontEnd = ->
 
 Rating = mongoose.model 'Rating', RatingSchema
 
-module.exports = Rating
+module.exports = ["Rating", Rating]

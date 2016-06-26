@@ -92,18 +92,7 @@ function start(env) {
      *});
      */
 
-    var models = {};
-    models.CookingMethod = require('./app/models/cooking_method')
-    models.Ingredient = require('./app/models/ingredient')
-    models.MealBase = require('./app/models/meal_base')
-    models.Meal = require('./app/models/meal');
-    models.PastMeal = require('./app/models/past_meal');
-    models.Rating = require('./app/models/rating');
-    models.EnergyLevel = require('./app/models/energy_level');
-    models.StomachPain = require('./app/models/stomach_pain');
-    models.Sickness = require('./app/models/sickness');
-    models.BowelMovement = require('./app/models/bowel_movement');
-
+    var models = require('./load_models.coffee');
     var dbFunctions = require('./app/db_functions');
 
     require('./app/routes')(router, models, dbFunctions, utils);

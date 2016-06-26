@@ -1,5 +1,12 @@
 bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
     bowel_movements_route = router.route '/bowel_movements'
+
+    checkIfBowelMovementInDB = (bowelMovement,models, callback) ->
+        modelName = "BowelMovement"
+        keys = ["date","username"]
+        dbFunctions.checkIfObjInDBUsingKeys models, modelName, keys, bowelMovement, callback
+
+
     bowel_movements_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -24,7 +31,7 @@ bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         bowelMovement.duration = item.duration
         bowelMovement.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         bowelMovement.username = auth.username
-        dbFunctions.checkIfBowelMovementInDB bowelMovement,models, saveCallback
+        checkIfBowelMovementInDB bowelMovement,models, saveCallback
 
 
     bowel_movements_route.get (req, res) ->
@@ -42,7 +49,7 @@ bowelMovementTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         bowelMovement.username = auth.username
         bowelMovement.objectId = item.jsonId
 
-        dbFunctions.checkIfBowelMovementInDB bowelMovement,models, (_,bowelMovementInDB) ->
+        checkIfBowelMovementInDB bowelMovement,models, (_,bowelMovementInDB) ->
             if not bowelMovementInDB
                 bowelMovement.save (err) ->
                     if err

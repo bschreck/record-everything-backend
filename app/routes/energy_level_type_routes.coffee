@@ -1,5 +1,12 @@
 energyLevelTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
+    return
     energy_levels_route = router.route '/energy_levels'
+
+    checkIfEnergyLevelInDB = (energyLevel,models, callback) ->
+        modelName = "EnergyLevel"
+        keys = ["date","username"]
+        dbFunctions.checkIfObjInDBUsingKeys models, modelName, keys, energyLevel, callback
+
     energy_levels_route.post (req, res) ->
         itemIndex = 0
         errs = []
@@ -22,7 +29,7 @@ energyLevelTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         energyLevel.rating = item.rating
         energyLevel.date = utils.roundDateToNearest10Min(new Date(item.date*1000))
         energyLevel.username = auth.username
-        dbFunctions.checkIfEnergyLevelInDB energyLevel,models, saveCallback
+        checkIfEnergyLevelInDB energyLevel,models, saveCallback
 
 
     energy_levels_route.get (req, res) ->
@@ -39,7 +46,7 @@ energyLevelTypeRouteFunction = (router, auth, models, dbFunctions, utils) ->
         energyLevel.username = auth.username
         energyLevel.objectId = item.jsonId
 
-        dbFunctions.checkIfEnergyLevelInDB energyLevel,models, (_,energyLevelInDB) ->
+        checkIfEnergyLevelInDB energyLevel,models, (_,energyLevelInDB) ->
             if not energyLevelInDB
                 energyLevel.save (err) ->
                     if err

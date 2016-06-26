@@ -82,64 +82,6 @@ module.exports =
                     pickNext(null,null)
 
 
-    checkIfCookingMethodInDBAndCreate: (name,models, callback) ->
-        findQuery =
-            name:     name
-        models.CookingMethod.findOne findQuery, (err,cm)->
-            if cm?
-                callback null, cm
-            else
-                cm = models.CookingMethod({name:name})
-                cm.save (err)->
-                    if err
-                        callback err, null
-                    else
-                        callback null, cm
-    checkIfIngredientInDBAndCreate: (name,models, callback) ->
-        findQuery =
-            name:     name
-        models.Ingredient.findOne findQuery, (err,ing)->
-            if ing?
-                callback null, ing
-            else
-                ing = models.Ingredient({name:name})
-                ing.save (err)->
-                    if err
-                        callback err, null
-                    else
-                        callback null, ing
-
-
-    checkIfMealBaseInDB: (mealBase,models, callback) ->
-        findQuery =
-            name:     mealBase.name
-            username: mealBase.username
-        models.MealBase.findOne findQuery, (err,dbMealBase)->
-            if dbMealBase?
-                if dbMealBase.objectId == mealBase.objectId
-                    callback null, dbMealBase,true
-                else
-                    callback "Wrong object id", dbMealBase, true
-            else
-                models.MealBase.findOne {objectId:mealBase.objectId}, (err,dbMealBase)->
-                    if dbMealBase?
-                        callback "Object id already exists", dbMealBase, true
-                    else
-                        callback null, null,false
-
-    checkIfMealInDB: (meal,models, callback) ->
-        findQuery =
-            type:     meal.type
-            date:     meal.date
-            username: meal.username
-            mealBase: meal.mealBase
-        console.log "checking for duplicates:", findQuery
-        models.Meal.findOne findQuery, (err,dbMeal)->
-            if dbMeal?
-                console.log "found duplicate meal"
-                callback dbMeal,true
-            else
-                callback dbMeal,false
 
     updateMealBase: (objectId, name, username, cookingMethodIDs, ingredientIDs, models, callback)->
         findQuery =
@@ -182,7 +124,7 @@ module.exports =
             callback "no objectId provided", null
         if not newMealBase.cookingMethods? or newMealBase.cookingMethods.length == 0
             callback "must have at least one cooking method", null
-        module.exports.checkIfMealBaseInDB newMealBase, models, (err, mealBase, mbInDB)->
+        module.exports.checkIfMealBaseInDB newMealBase, models, (mealBase, mbInDB, err)->
             if err
                 console.log 'check if mealbase in db error'
                 callback err, null
@@ -235,54 +177,57 @@ module.exports =
         findQuery = {}
         for key in keys
             findQuery[key] = obj[key]
-        models[modelName].findOne findQuery, (err,obj)->
-            if obj?
-                callback obj,true
+        models[modelName].findOne findQuery, (err,dbObj)->
+            if dbObj?
+                #found object using keys (assumes objectId is not in keys)
+                if obj.objectId? and obj.objectId != dbObj.objectId
+                    #if obj contained an objectId and it doesn't match
+                    callback dbObj, true, "Wrong object id"
+                else
+                    #we found it
+                    callback dbObj,true
             else
-                callback obj,false
+                if obj.objectId?
+                    #if object contained an objectId check if a different object
+                    #with that objectId already exists
+                    models[modelName].findOne {objectId:obj.objectId}, (err,dbObj)->
+                        if dbObj?
+                            callback dbObj, true, "Object id already exists"
+                        else
+                            #could not find it
+                            callback null, false
+                else
+                    #could not find it
+                    callback null,false
+    checkIfMealInDB: (meal,models, callback) ->
+        keys = ["type","date","username","mealBase"]
+        module.exports.checkIfObjInDBUsingKeys models, 'Meal', keys, meal,callback
+    checkIfMealBaseInDB: (mealBase,models, callback) ->
+        keys = ["name","username"]
+        module.exports.checkIfObjInDBUsingKeys models, 'MealBase', keys, mealBase,callback
 
-    checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
-        modelName = "EnergyLevel"
-        keys = ["date","username"]
-        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, energyLevel, callback
-    checkIfStomachPainInDB: (stomachPain,models, callback) ->
-        modelName = "StomachPain"
-        keys = ["date","username"]
-        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, stomachPain, callback
-    checkIfSicknessInDB: (sickness,models, callback) ->
-        modelName = "Sickness"
-        keys = ["date","username"]
-        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, sickness, callback
-    checkIfBowelMovementInDB: (bowelMovement,models, callback) ->
-        modelName = "BowelMovement"
-        keys = ["date","username"]
-        module.exports.checkIfObjInDBUsingKeys models, modelName, keys, bowelMovement, callback
-    #checkIfEnergyLevelInDB: (energyLevel,models, callback) ->
-        #findQuery =
-            #date: energyLevel.date
-            #username: energyLevel.username
-        #models.EnergyLevel.findOne findQuery, (err,energyLevel)->
-            #if energyLevel?
-                #callback energyLevel,true
-            #else
-                #callback energyLevel,false
+    checkIfCookingMethodInDBAndCreate: (name,models, callback) ->
+        keys = ["name"]
+        cm = models.CookingMethod(name: name)
+        module.exports.checkIfObjInDBUsingKeys models, 'CookingMethod', keys, cm,(dbCm,cmInDB)->
+            if cmInDB
+                callback null, dbCm
+            else
+                cm.save (err)->
+                    if err
+                        callback err, null
+                    else
+                        callback null, cm
 
-    #checkIfStomachPainInDB: (stomachPain,models, callback) ->
-        #findQuery =
-            #date: stomachPain.date
-            #username: stomachPain.username
-        #models.StomachPain.findOne findQuery, (err,stomachPain)->
-            #if stomachPain?
-                #callback stomachPain,true
-            #else
-                #callback stomachPain,false
-
-    #checkIfBowelMovementInDB: (bowelMovement,models, callback) ->
-        #findQuery =
-            #date: bowelMovement.date
-            #username: bowelMovement.username
-        #models.BowelMovement.findOne findQuery, (err,bowelMovement)->
-            #if bowelMovement?
-                #callback bowelMovement,true
-            #else
-                #callback bowelMovement,false
+    checkIfIngredientInDBAndCreate: (name,models, callback) ->
+        keys = ["name"]
+        ing = models.Ingredient(name:name)
+        module.exports.checkIfObjInDBUsingKeys models, 'Ingredient', keys, ing,(dbIng,ingInDB)->
+            if ingInDB?
+                callback null, dbIng
+            else
+                ing.save (err)->
+                    if err
+                        callback err, null
+                    else
+                        callback null, ing

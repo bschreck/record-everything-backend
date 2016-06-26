@@ -56,4 +56,4 @@ MealSchema.methods.baseObjectId = (callback)->
     this.model('MealBase').findById this.mealBase (err,mb)->
         callback err, mb.objectId
 
-module.exports = mongoose.model 'Meal', MealSchema
+module.exports = ["Meal",mongoose.model 'Meal', MealSchema]

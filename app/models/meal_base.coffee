@@ -30,4 +30,4 @@ MealBaseSchema.methods.toFrontEnd = ->
     ingredients:    (ing.name for ing in this.ingredients)
     jsonId:       this.objectId
 
-module.exports = mongoose.model 'MealBase', MealBaseSchema
+module.exports = ["MealBase",mongoose.model 'MealBase', MealBaseSchema]

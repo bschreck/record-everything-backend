@@ -53,4 +53,4 @@ PastMealSchema.statics.toFrontEnd = (pastMealsArray)->
     return pastMeals
 
 
-module.exports = mongoose.model 'PastMeal', PastMealSchema
+module.exports = ["PastMeal", mongoose.model 'PastMeal', PastMealSchema]

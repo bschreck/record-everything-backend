@@ -35,4 +35,4 @@ BowelMovementSchema.methods.toFrontEnd = ->
 
 BowelMovement = mongoose.model 'BowelMovement', BowelMovementSchema
 
-module.exports = BowelMovement
+module.exports = ["BowelMovement",BowelMovement]

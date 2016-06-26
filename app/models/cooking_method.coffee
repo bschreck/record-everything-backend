@@ -15,4 +15,4 @@ CookingMethodSchema = new Schema
         enum: possible_cooking_methods
 
 CookingMethodSchema.index {name: 1},{unique: true}
-module.exports = mongoose.model 'CookingMethod', CookingMethodSchema
+module.exports = ["CookingMethod", mongoose.model 'CookingMethod', CookingMethodSchema]
